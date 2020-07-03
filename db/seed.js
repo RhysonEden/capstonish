@@ -6,6 +6,9 @@ const {
   getAllProducts,
   getAllReviews,
   createReview,
+  getProductsById,
+  getUsersByID,
+  getReviewsByID,
 } = require("./index");
 
 async function createInitialReviews() {
@@ -34,7 +37,13 @@ async function createInitialProducts() {
       price: "230.99",
       category: "computer",
     });
-
+    const tabletytablet = await createProduct({
+      itemname: "Fire 7 Tablet",
+      description:
+        '7" IPS display; 16 or 32 GB of internal storage (add up to 512 GB with microSD) Faster 1.3 GHz quad-core processor Up to 7 hours of reading, browsing the web, watching video, and listening to music Hands-free with Alexa, including on/off toggle 1 GB of RAM 2 MP front and rear-facing cameras with 720p HD video recording Dual-band Wi-Fi',
+      price: "49.99",
+      category: "tablet",
+    });
     console.log("Finished creating products!");
   } catch (error) {
     console.error("Error creating products!");
@@ -92,13 +101,22 @@ async function createInitialUsers() {
   try {
     console.log("Starting to create users...");
 
-    const albert = await createUser({
-      username: "albert",
+    const arman = await createUser({
+      username: "arman",
       password: "bertie99",
       seller: true,
     });
-
-    console.log(albert);
+    const james = await createUser({
+      username: "james",
+      password: "bertie99",
+      seller: true,
+    });
+    const robin = await createUser({
+      username: "robin",
+      password: "bertie99",
+      seller: true,
+    });
+    console.log(arman, james, robin);
 
     console.log("Finished creating users!");
   } catch (error) {
@@ -130,6 +148,12 @@ async function testDB() {
     console.log("line 104", products);
     const users = await getAllUsers();
     console.log(users);
+    const prod2 = await getProductsById(1);
+    console.log("Product 2", prod2);
+    const user2 = await getUsersByID(2);
+    console.log("User ID:", user2);
+    const reviewed = await getReviewsByID(1);
+    console.log("review 2", reviewed);
   } catch (error) {
     console.error(error);
   } finally {

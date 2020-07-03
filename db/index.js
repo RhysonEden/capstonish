@@ -2,6 +2,22 @@ const { Client } = require("pg");
 
 const client = new Client("postgres://localhost:5432/capstone");
 
+async function createUser({ username, password, seller, shoppingcart }) {
+  try {
+    const result = await client.query(
+      `
+      INSERT INTO users(username, password, seller, shoppingcart)
+      VALUES ($1, $2, $3, $4);
+    `,
+      [username, password, seller, shoppingcart]
+    );
+
+    return result;
+  } catch (error) {
+    throw error;
+  }
+}
+
 async function createProduct({ itemname, description, price, category }) {
   try {
     const result = await client.query(
@@ -43,6 +59,22 @@ async function getAllProducts() {
   return rows;
 }
 
+async function getProductsById(id) {
+  try {
+    const { rows } = await client.query(
+      `
+    SELECT * 
+    FROM products
+    WHERE id=$1
+    `,
+      [id]
+    );
+    return rows;
+  } catch (error) {
+    throw error;
+  }
+}
+
 async function getAllUsers() {
   const { rows } = await client.query(
     `SELECT username, seller, shoppingcart
@@ -51,6 +83,22 @@ async function getAllUsers() {
   );
 
   return rows;
+}
+
+async function getUsersByID(id) {
+  try {
+    const { rows } = await client.query(
+      `
+    SELECT username, seller, shoppingcart
+    FROM users
+    WHERE id=$1
+    `,
+      [id]
+    );
+    return rows;
+  } catch (error) {
+    throw error;
+  }
 }
 
 async function getAllReviews() {
@@ -62,17 +110,17 @@ async function getAllReviews() {
   return rows;
 }
 
-async function createUser({ username, password, seller, shoppingcart }) {
+async function getReviewsByID(id) {
   try {
-    const result = await client.query(
+    const { rows } = await client.query(
       `
-      INSERT INTO users(username, password, seller, shoppingcart)
-      VALUES ($1, $2, $3, $4);
+    SELECT *
+    FROM reviews
+    WHERE id=$1
     `,
-      [username, password, seller, shoppingcart]
+      [id]
     );
-
-    return result;
+    return rows;
   } catch (error) {
     throw error;
   }
@@ -86,4 +134,7 @@ module.exports = {
   getAllProducts,
   getAllReviews,
   createReview,
+  getProductsById,
+  getUsersByID,
+  getReviewsByID,
 };
