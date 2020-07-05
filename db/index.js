@@ -18,14 +18,20 @@ async function createUser({ username, password, seller, shoppingcart }) {
   }
 }
 
-async function createProduct({ itemname, description, price, category }) {
+async function createProduct({
+  itemname,
+  description,
+  price,
+  category,
+  image,
+}) {
   try {
     const result = await client.query(
       `
-    INSERT INTO products(itemname, description, price, category)
-    VALUES ($1, $2, $3, $4);
+    INSERT INTO products(itemname, description, price, category, image)
+    VALUES ($1, $2, $3, $4, $5);
     `,
-      [itemname, description, price, category]
+      [itemname, description, price, category, image]
     );
     console.log(result);
     return result;
@@ -34,14 +40,14 @@ async function createProduct({ itemname, description, price, category }) {
   }
 }
 
-async function createReview({ username, review }) {
+async function createReview({ productId, userId, review }) {
   try {
     const result = await client.query(
       `
-    INSERT INTO reviews(username, review )
-    VALUES ($1, $2);
+    INSERT INTO reviews("productId", "userId", review )
+    VALUES ($1, $2, $3);
     `,
-      [username, review]
+      [productId, userId, review]
     );
     console.log(result);
     return result;
@@ -49,14 +55,39 @@ async function createReview({ username, review }) {
     throw error;
   }
 }
+
+// async function getAllProducts() {
+//   const { rows } = await client.query(
+//     `
+//     SELECT * FROM products
+//     `
+//   );
+//   return rows;
+// }
 
 async function getAllProducts() {
-  const { rows } = await client.query(
-    `
-    SELECT * FROM products
-    `
+  const { rows } = await client.query(`
+   SELECT id, itemname, description, price, category, image
+   FROM products;
+  `);
+  const productswithreviews = await Promise.all(
+    rows.map(async (product) => {
+      const { rows: reviewIds } = await client.query(
+        `
+      SELECT *
+      FROM reviews
+      WHERE "productId"=$1
+      `,
+        [product.id]
+      );
+      const reviews = await Promise.all(
+        reviewIds.map((review) => getReviewsByID(review.id))
+      );
+      product.reviews = reviews;
+      return product;
+    })
   );
-  return rows;
+  return productswithreviews;
 }
 
 async function getProductsById(id) {
@@ -83,6 +114,31 @@ async function getAllUsers() {
   );
 
   return rows;
+}
+
+async function getAllTaxes(){
+  const {rows} = await client.query(
+    `
+    SELECT state, rate
+    FROM taxrates;
+    `
+  );
+  return rows;
+}
+
+async function createTaxRate({ state, rate}){
+  try {
+    const result = await client.query(
+      `
+    INSERT INTO taxrates(state, rate)
+    VALUES ($1, $2);
+    `,
+      [state, rate]
+    );
+    return result;
+  } catch (error) {
+    throw error;
+  }
 }
 
 async function getUsersByID(id) {
@@ -137,4 +193,6 @@ module.exports = {
   getProductsById,
   getUsersByID,
   getReviewsByID,
+  getAllTaxes,
+  createTaxRate,
 };
